@@ -1,0 +1,125 @@
+import { createContext, useCallback, useContext, useState } from "react";
+import { connect } from "react-redux";
+import "./styles.css";
+
+function TodoInput(props) {
+  console.log(props);
+  const [value, setValue] = useState("");
+  // const { todos = [], setTodos } = useContext(TodosContext);
+  const { dispatch } = props;
+  function addTodo(task) {
+    return {
+      type: "ADD_TODO",
+      todo: task
+    };
+  }
+  return (
+    <>
+      <label>
+        Add your todos
+        <input
+          type="text"
+          value={value}
+          onChange={(event) => {
+            const {
+              target: { value }
+            } = event;
+            setValue(value);
+          }}
+        />
+      </label>
+      <div>
+        <button
+          onClick={() => {
+            // setTodos([...todos, { todo: value }]);
+            dispatch(addTodo(value));
+            setValue("");
+          }}
+        >
+          Add todo
+        </button>
+      </div>
+    </>
+  );
+}
+
+const ConnectedToDoInput = connect(null, null)(TodoInput);
+
+function DisplayTodos(props) {
+  const { todos = [], dispatch } = props;
+  // const { todos = [], setTodos } = useContext(TodosContext);
+  return (
+    <>
+      <h1>All the todos</h1>
+      {todos.map((el) => {
+        const { isCompleted, todo } = el;
+        return (
+          <>
+            <p style={{ color: isCompleted ? "green" : "red" }}>{el.todo}</p>
+            <button
+              onClick={() => {
+                const newToDosList = todos.map((el) => {
+                  if (el.todo === todo) {
+                    return { ...el, isCompleted: true };
+                  }
+                  return el;
+                });
+                setTodos(newToDosList);
+              }}
+            >
+              Done ?
+            </button>
+          </>
+        );
+      })}
+    </>
+  );
+}
+function TodoStats() {
+  const { todos, setTodos } = useContext(TodosContext);
+  return (
+    <>
+      <h2>Total todos = {todos.length} </h2>
+      <h2>No of todos done = {todos.filter((el) => el.isCompleted).length}</h2>
+      <h2>
+        No of todos not done = {todos.filter((el) => !el.isCompleted).length}
+      </h2>
+      <button
+        onClick={() => {
+          setTodos(
+            todos.map((el) => {
+              return { ...el, isCompleted: true };
+            })
+          );
+        }}
+      >
+        Mark all as Completed
+      </button>
+    </>
+  );
+}
+
+const TodosContext = createContext();
+const ConnectedDisplayToDos = connect((state) => {
+  return {
+    todos: state
+  };
+})(DisplayTodos);
+function App() {
+  const [todos, setTodos] = useState([]);
+  return (
+    <TodosContext.Provider value={{ todos, setTodos }}>
+      <div className="App">
+        {/* <TodoInput /> */}
+        {/* <DisplayTodos /> */}
+        <ConnectedToDoInput />
+        <hr />
+        <TodoStats />
+        <hr />
+        {/* <DisplayTodos /> */}
+        <ConnectedDisplayToDos />
+      </div>
+    </TodosContext.Provider>
+  );
+}
+export default App;
